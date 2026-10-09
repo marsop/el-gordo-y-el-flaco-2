@@ -1,4 +1,5 @@
 import { DayOfWeek, DAYS_OF_WEEK, Meal, PantryItem, WeeklyPlan, NotionSyncConfig } from '../types';
+import { USER_FAVORITE_RECIPES } from './userFavorites';
 
 export const INITIAL_PANTRY_ITEMS: PantryItem[] = [
   { id: 'p1', name: 'Baby Spinach (Organic)', category: 'Produce', quantity: '1 bag (200g)', daysUntilExpiry: 1 },
@@ -15,7 +16,7 @@ export const INITIAL_PANTRY_ITEMS: PantryItem[] = [
   { id: 'p12', name: 'Chipotle in Adobo', category: 'Sauces & Condiments', quantity: '1 small jar', daysUntilExpiry: 14 }
 ];
 
-export const RECIPE_CATALOG: Meal[] = [
+export const DINER_ORIGINALS: Meal[] = [
   {
     id: 'rec-1',
     title: 'Retro Smash Burger & Crispy Wedge Fries',
@@ -344,6 +345,11 @@ export const RECIPE_CATALOG: Meal[] = [
   }
 ];
 
+export const RECIPE_CATALOG: Meal[] = [
+  ...USER_FAVORITE_RECIPES,
+  ...DINER_ORIGINALS
+];
+
 // Helper to construct a leftover meal object linked to a previous day's batch cook
 export function createLeftoverFromMeal(
   sourceMeal: Meal,
@@ -353,7 +359,7 @@ export function createLeftoverFromMeal(
   return {
     ...sourceMeal,
     id: `leftover-${sourceMeal.id}-${Date.now()}`,
-    title: `🔄 Leftover: ${sourceMeal.title.replace('for Two', '').trim()}`,
+    title: `🔄 Leftover: ${sourceMeal.title.replace('for Two', '').replace('& Mixed Salad', '').trim()}`,
     prepTime: 3,
     cookTime: 0,
     isLeftover: true,
@@ -365,7 +371,15 @@ export function createLeftoverFromMeal(
   };
 }
 
-// Initial Weekly Plan showcasing low cooking effort through smart batching & leftovers
+// Find user favorite recipes helper
+const getFav = (id: string) => USER_FAVORITE_RECIPES.find((r) => r.id === id) || RECIPE_CATALOG[0];
+
+const monDinnerDish = getFav('fav-chili-sin-carne');
+const tueDinnerDish = getFav('fav-lasagne');
+const thuDinnerDish = getFav('fav-curry-garam-masala');
+const satDinnerDish = getFav('fav-kasspatzle');
+
+// Initial Weekly Plan showcasing user favorite meals and low-effort batching
 export const INITIAL_WEEKLY_PLAN: WeeklyPlan = {
   id: 'week-1',
   weekName: 'Week of Monday, Oct 12',
@@ -374,112 +388,64 @@ export const INITIAL_WEEKLY_PLAN: WeeklyPlan = {
     Monday: {
       day: 'Monday',
       dateLabel: 'Oct 12',
-      lunch: { ...RECIPE_CATALOG[1] }, // Fiesta Taco Salad (Cook fresh, uses expiring items)
+      lunch: { ...getFav('fav-tortilla-patatas') }, // Tortilla de Patatas
       dinner: { 
-        ...RECIPE_CATALOG[4], // Chipotle Chicken Burrito Bowls
+        ...monDinnerDish, // Chili sin carne
         isBatchCook: true,
         batchServings: 4,
-        notes: 'Cook a DOUBLE BATCH tonight (4 servings total)! Saves tomorrow’s lunch with zero cooking.'
+        notes: 'Double batch of chili tonight (4 servings total)! Saves Tuesday lunch with zero cooking.'
       }
     },
     Tuesday: {
       day: 'Tuesday',
       dateLabel: 'Oct 13',
-      lunch: {
-        ...RECIPE_CATALOG[4],
-        id: 'leftover-mon-dinner',
-        title: '🔄 Leftover: Chipotle Chicken Burrito Bowls',
-        prepTime: 3,
-        cookTime: 0,
-        isLeftover: true,
-        sourceDay: 'Monday',
-        sourceMealType: 'dinner',
-        sourceMealTitle: 'Chipotle Chicken Burrito Bowls',
-        tags: ['Leftovers', 'Zero Cooking', 'Quick 3m Reheat'],
-        notes: 'Reheat from Monday’s double batch. Microwave 2 minutes with damp paper towel.'
-      },
+      lunch: createLeftoverFromMeal(monDinnerDish, 'Monday', 'dinner'),
       dinner: { 
-        ...RECIPE_CATALOG[9], // Slow Cooked Barbacoa Beef
+        ...tueDinnerDish, // Classic Lasagne al Forno
         isBatchCook: true,
         batchServings: 4,
-        notes: 'Double batch shredded barbacoa beef! Half goes onto tonight’s skillet, half saved for Wednesday lunch.'
+        notes: 'Bake a 4-serving Lasagne tonight! Wednesday lunch will be an effortless reheat.'
       }
     },
     Wednesday: {
       day: 'Wednesday',
       dateLabel: 'Oct 14',
-      lunch: {
-        ...RECIPE_CATALOG[9],
-        id: 'leftover-tue-dinner',
-        title: '🔄 Leftover: Shredded Barbacoa Beef Rice Bowls',
-        prepTime: 3,
-        cookTime: 0,
-        isLeftover: true,
-        sourceDay: 'Tuesday',
-        sourceMealType: 'dinner',
-        sourceMealTitle: 'Slow-Cooked Barbacoa Beef',
-        tags: ['Leftovers', 'Zero Cooking', 'Quick 3m Reheat'],
-        notes: 'Reheat from Tuesday’s batch. Warm beef in skillet 2 mins; serve over warm rice.'
-      },
-      dinner: { ...RECIPE_CATALOG[3] } // Sizzling Steak & Pepper Fajita Skillet (Fresh, 15m)
+      lunch: createLeftoverFromMeal(tueDinnerDish, 'Tuesday', 'dinner'),
+      dinner: { ...getFav('fav-fajitas-chicken') } // Sizzling Fajitas (Chicken / Quinoa / Guacamole)
     },
     Thursday: {
       day: 'Thursday',
       dateLabel: 'Oct 15',
-      lunch: { ...RECIPE_CATALOG[8] }, // Huevos Rancheros (Cook Fresh 10m)
+      lunch: { ...getFav('fav-shakshuka') }, // Shakshuka with warm bread
       dinner: { 
-        ...RECIPE_CATALOG[13], // Big Batch Chuck Wagon Chili
+        ...thuDinnerDish, // Garam Masala Curry
         isBatchCook: true,
         batchServings: 4,
-        notes: 'Cook full pot of chili (4 servings)! Chili tastes even better the next day as spices deepen.'
+        notes: 'Simmer fragrant curry for 4! Spices meld overnight for Friday lunch.'
       }
     },
     Friday: {
       day: 'Friday',
       dateLabel: 'Oct 16',
-      lunch: {
-        ...RECIPE_CATALOG[13],
-        id: 'leftover-thu-dinner',
-        title: '🔄 Leftover: 80s Chuck Wagon Chili & Toasted Buns',
-        prepTime: 3,
-        cookTime: 0,
-        isLeftover: true,
-        sourceDay: 'Thursday',
-        sourceMealType: 'dinner',
-        sourceMealTitle: 'Big Batch 80s Chuck Wagon Chili',
-        tags: ['Leftovers', 'Zero Cooking', 'Quick 3m Reheat'],
-        notes: 'Reheat chili in microwave or small pan. Spoon over toasted buns or eat with cheddar.'
-      },
-      dinner: { ...RECIPE_CATALOG[0] } // Friday Night Diner Smash Burgers (Cook Fresh, 15m)
+      lunch: createLeftoverFromMeal(thuDinnerDish, 'Thursday', 'dinner'),
+      dinner: { ...getFav('fav-burgers-veggies-oven') } // Burgers + Veggies in the Oven
     },
     Saturday: {
       day: 'Saturday',
       dateLabel: 'Oct 17',
-      lunch: { ...RECIPE_CATALOG[11] }, // Turkey BLT Wrap (Fresh, 10m)
+      lunch: { ...getFav('fav-wraps-chicken') }, // Wraps with chicken & fresh veggies
       dinner: { 
-        ...RECIPE_CATALOG[10], // Sesame Ginger Noodles
+        ...satDinnerDish, // Kässpätzle with caramelized onions
         isBatchCook: true,
         batchServings: 4,
-        notes: 'Make double batch of sesame ginger noodles! Chills in fridge perfectly for easy Sunday lunch.'
+        notes: 'Make double batch of Alpine Kässpätzle! Leftovers warm up in skillet in 2 mins.'
       }
     },
     Sunday: {
       day: 'Sunday',
       dateLabel: 'Oct 18',
-      lunch: {
-        ...RECIPE_CATALOG[10],
-        id: 'leftover-sat-dinner',
-        title: '🔄 Leftover: Chilled Sesame Ginger Noodle Bowls',
-        prepTime: 2,
-        cookTime: 0,
-        isLeftover: true,
-        sourceDay: 'Saturday',
-        sourceMealType: 'dinner',
-        sourceMealTitle: 'Sesame Ginger Chicken Noodle Bowl',
-        tags: ['Leftovers', 'Zero Cooking', 'Chilled Lunch'],
-        notes: 'Enjoy chilled straight from the fridge or warmed for 60 seconds! No cooking required.'
-      },
-      dinner: { ...RECIPE_CATALOG[12] } // Sunday Roast Herb Chicken (Fresh roast feast!)
+      lunch: createLeftoverFromMeal(satDinnerDish, 'Saturday', 'dinner'),
+      dinner: { ...getFav('fav-salmon-oven') } // Salmon in the oven with roasted potatoes
     }
   }
 };
