@@ -25,9 +25,12 @@ export const Header: React.FC<HeaderProps> = ({
           href="#" 
           className="group flex items-center gap-3 text-xl font-black tracking-wider uppercase font-['Oswald'] text-amber-400 hover:text-amber-300 transition-colors whitespace-nowrap shrink-0"
         >
-          <div className="w-8 h-8 rounded bg-red-600 text-amber-300 flex items-center justify-center font-black text-sm shadow border border-amber-400/50">
-            80s
-          </div>
+          <img 
+            src="/favicon-32x32.png" 
+            srcSet="/logo.png 2x" 
+            alt="El Gordo Y El Flaco" 
+            className="w-8 h-8 rounded-full object-cover border border-amber-400 shadow group-hover:scale-105 transition-transform" 
+          />
           <span>EL GORDO Y EL FLACO</span>
         </a>
 
