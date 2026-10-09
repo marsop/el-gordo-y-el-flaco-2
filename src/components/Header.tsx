@@ -31,7 +31,7 @@ export const Header: React.FC<HeaderProps> = ({
             src="/favicon-32x32.png" 
             srcSet="/logo.png 2x" 
             alt="El Gordo Y El Flaco" 
-            className="w-8 h-8 rounded-full object-cover border border-amber-400 shadow group-hover:scale-105 transition-transform" 
+            className="w-9 h-9 object-contain drop-shadow group-hover:scale-105 transition-transform" 
           />
           <span>EL GORDO Y EL FLACO</span>
         </a>
