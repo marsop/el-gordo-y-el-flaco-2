@@ -5,19 +5,23 @@ import { WeeklyPlan, PantryItem } from '../types';
 interface MarqueeBannerProps {
   plan: WeeklyPlan;
   pantryItems: PantryItem[];
+  totalRecipesCount: number;
   onShuffleAll: () => void;
   onPrioritizeExpiring: () => void;
-  onApplyPreset: (preset: 'batch_leftovers' | 'balanced' | 'quick' | 'comfort') => void;
+  onApplyPreset: (preset: 'favorites' | 'batch_leftovers' | 'balanced' | 'quick' | 'comfort') => void;
   onAutoBatchLeftovers: () => void;
+  onOpenAllMeals: () => void;
 }
 
 export const MarqueeBanner: React.FC<MarqueeBannerProps> = ({
   plan,
   pantryItems,
+  totalRecipesCount,
   onShuffleAll,
   onPrioritizeExpiring,
   onApplyPreset,
-  onAutoBatchLeftovers
+  onAutoBatchLeftovers,
+  onOpenAllMeals
 }) => {
   // Calculate stats
   const criticalItems = pantryItems.filter((i) => i.daysUntilExpiry <= 2);
@@ -61,7 +65,7 @@ export const MarqueeBanner: React.FC<MarqueeBannerProps> = ({
             <p className="text-sm md:text-base text-zinc-300 font-['Plus_Jakarta_Sans'] leading-relaxed">
               Custom dual-portion weekly meal board tailored for two hearty appetites. 
               Cook once, eat twice: batch cook dinners so lunches become effortless 3-minute reheats, 
-              preserving food quality without spending hours in the kitchen every day.
+              featuring your personalized favorites like Tortilla, Kässpätzle, Lasagne, Curry, and Fajitas.
             </p>
 
             {/* Profile Tagline & Low-Cooking Metrics */}
@@ -91,18 +95,18 @@ export const MarqueeBanner: React.FC<MarqueeBannerProps> = ({
               <span className="text-xs text-zinc-400 block font-['Plus_Jakarta_Sans']">Select Menu Rotation:</span>
               <div className="grid grid-cols-4 gap-1 p-1 bg-zinc-900 rounded border border-zinc-800">
                 <button
+                  onClick={() => onApplyPreset('favorites')}
+                  className="px-1.5 py-1.5 text-[11px] font-black rounded bg-amber-500 text-zinc-950 hover:bg-amber-400 transition-colors cursor-pointer text-center truncate"
+                  title="Plan curated from your favorite meals"
+                >
+                  ★ Favorites
+                </button>
+                <button
                   onClick={() => onApplyPreset('batch_leftovers')}
                   className="px-1.5 py-1.5 text-[11px] font-bold rounded bg-teal-950 text-teal-300 border border-teal-700/60 hover:bg-teal-900 transition-colors cursor-pointer text-center truncate"
                   title="Cook Once, Eat Twice (Max Leftovers)"
                 >
                   Leftovers
-                </button>
-                <button
-                  onClick={() => onApplyPreset('balanced')}
-                  className="px-1.5 py-1.5 text-[11px] font-medium rounded hover:bg-zinc-800 text-zinc-200 transition-colors cursor-pointer text-center truncate"
-                  title="Balanced 80s Classics"
-                >
-                  Balanced
                 </button>
                 <button
                   onClick={() => onApplyPreset('quick')}
@@ -139,13 +143,23 @@ export const MarqueeBanner: React.FC<MarqueeBannerProps> = ({
                 <span>Prioritize Expiring Pantry ({criticalItems.length} Urgent)</span>
               </button>
 
-              <button
-                onClick={onShuffleAll}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold uppercase tracking-wider bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 rounded transition-colors font-['Oswald'] cursor-pointer"
-              >
-                <Shuffle className="w-3.5 h-3.5 text-amber-400" />
-                <span>Shuffle Weekly Meals</span>
-              </button>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={onOpenAllMeals}
+                  className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold uppercase tracking-wider bg-zinc-900 hover:bg-zinc-800 text-amber-300 border border-amber-400/60 rounded transition-colors font-['Oswald'] cursor-pointer"
+                >
+                  <Utensils className="w-3.5 h-3.5 text-amber-400" />
+                  <span>See All Meals ({totalRecipesCount})</span>
+                </button>
+
+                <button
+                  onClick={onShuffleAll}
+                  className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold uppercase tracking-wider bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 rounded transition-colors font-['Oswald'] cursor-pointer"
+                >
+                  <Shuffle className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Shuffle Week</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

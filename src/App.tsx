@@ -8,6 +8,7 @@ import { GroceryModal } from './components/GroceryModal';
 import { MealModal } from './components/MealModal';
 import { ExportModal } from './components/ExportModal';
 import { RecipeCatalogModal } from './components/RecipeCatalogModal';
+import { AllMealsModal } from './components/AllMealsModal';
 import { 
   INITIAL_PANTRY_ITEMS, 
   INITIAL_WEEKLY_PLAN, 
@@ -29,6 +30,7 @@ export default function App() {
   const [isPantryOpen, setIsPantryOpen] = useState(false);
   const [isNotionOpen, setIsNotionOpen] = useState(false);
   const [isGroceryOpen, setIsGroceryOpen] = useState(false);
+  const [isAllMealsOpen, setIsAllMealsOpen] = useState(false);
 
   // Active Meal being edited
   const [editingTarget, setEditingTarget] = useState<{
@@ -290,7 +292,64 @@ export default function App() {
   };
 
   // 9. Apply curated presets
-  const handleApplyPreset = (preset: 'batch_leftovers' | 'balanced' | 'quick' | 'comfort') => {
+  const handleApplyPreset = (preset: 'favorites' | 'batch_leftovers' | 'balanced' | 'quick' | 'comfort') => {
+    if (preset === 'favorites') {
+      const getFav = (id: string) => recipes.find((r) => r.id === id) || recipes[0];
+      const monDinner = getFav('fav-chili-sin-carne');
+      const tueDinner = getFav('fav-lasagne');
+      const thuDinner = getFav('fav-curry-garam-masala');
+      const satDinner = getFav('fav-kasspatzle');
+
+      const favDays = {
+        Monday: {
+          day: 'Monday' as DayOfWeek,
+          dateLabel: plan.days['Monday'].dateLabel,
+          lunch: { ...getFav('fav-tortilla-patatas'), mealType: 'lunch' as const },
+          dinner: { ...monDinner, mealType: 'dinner' as const, isBatchCook: true, batchServings: 4 }
+        },
+        Tuesday: {
+          day: 'Tuesday' as DayOfWeek,
+          dateLabel: plan.days['Tuesday'].dateLabel,
+          lunch: createLeftoverFromMeal(monDinner, 'Monday', 'dinner'),
+          dinner: { ...tueDinner, mealType: 'dinner' as const, isBatchCook: true, batchServings: 4 }
+        },
+        Wednesday: {
+          day: 'Wednesday' as DayOfWeek,
+          dateLabel: plan.days['Wednesday'].dateLabel,
+          lunch: createLeftoverFromMeal(tueDinner, 'Tuesday', 'dinner'),
+          dinner: { ...getFav('fav-fajitas-chicken'), mealType: 'dinner' as const }
+        },
+        Thursday: {
+          day: 'Thursday' as DayOfWeek,
+          dateLabel: plan.days['Thursday'].dateLabel,
+          lunch: { ...getFav('fav-shakshuka'), mealType: 'lunch' as const },
+          dinner: { ...thuDinner, mealType: 'dinner' as const, isBatchCook: true, batchServings: 4 }
+        },
+        Friday: {
+          day: 'Friday' as DayOfWeek,
+          dateLabel: plan.days['Friday'].dateLabel,
+          lunch: createLeftoverFromMeal(thuDinner, 'Thursday', 'dinner'),
+          dinner: { ...getFav('fav-burgers-veggies-oven'), mealType: 'dinner' as const }
+        },
+        Saturday: {
+          day: 'Saturday' as DayOfWeek,
+          dateLabel: plan.days['Saturday'].dateLabel,
+          lunch: { ...getFav('fav-wraps-chicken'), mealType: 'lunch' as const },
+          dinner: { ...satDinner, mealType: 'dinner' as const, isBatchCook: true, batchServings: 4 }
+        },
+        Sunday: {
+          day: 'Sunday' as DayOfWeek,
+          dateLabel: plan.days['Sunday'].dateLabel,
+          lunch: createLeftoverFromMeal(satDinner, 'Saturday', 'dinner'),
+          dinner: { ...getFav('fav-salmon-oven'), mealType: 'dinner' as const }
+        }
+      };
+
+      setPlan((prev) => ({ ...prev, days: favDays }));
+      showToast('Loaded your personalized favorites rotation with batch cooking!');
+      return;
+    }
+
     if (preset === 'batch_leftovers') {
       handleAutoBatchLeftovers();
       return;
@@ -369,6 +428,7 @@ export default function App() {
         onOpenPantry={() => setIsPantryOpen(true)}
         onOpenNotion={() => setIsNotionOpen(true)}
         onOpenGrocery={() => setIsGroceryOpen(true)}
+        onOpenAllMeals={() => setIsAllMealsOpen(true)}
         expiringCount={urgentPantryCount}
       />
 
@@ -377,10 +437,12 @@ export default function App() {
         <MarqueeBanner
           plan={plan}
           pantryItems={pantryItems}
+          totalRecipesCount={recipes.length}
           onShuffleAll={handleShuffleAll}
           onPrioritizeExpiring={handlePrioritizeExpiring}
           onApplyPreset={handleApplyPreset}
           onAutoBatchLeftovers={handleAutoBatchLeftovers}
+          onOpenAllMeals={() => setIsAllMealsOpen(true)}
         />
 
         {/* Monday to Sunday Schedule View */}
@@ -398,6 +460,7 @@ export default function App() {
           onShuffleDay={handleShuffleDay}
           onToggleBatch={handleToggleBatch}
           onMakeLeftover={handleMakeLeftover}
+          onOpenAllMeals={() => setIsAllMealsOpen(true)}
         />
       </main>
 
@@ -473,6 +536,35 @@ export default function App() {
           onSelectRecipe={handleSelectSwapRecipe}
         />
       )}
+
+      <AllMealsModal
+        isOpen={isAllMealsOpen}
+        onClose={() => setIsAllMealsOpen(false)}
+        recipes={recipes}
+        plan={plan}
+        onScheduleMeal={(meal, day, mealType) => {
+          setPlan((prev) => ({
+            ...prev,
+            days: {
+              ...prev.days,
+              [day]: {
+                ...prev.days[day],
+                [mealType]: { ...meal, mealType, isLeftover: false }
+              }
+            }
+          }));
+          setIsAllMealsOpen(false);
+          showToast(`Scheduled "${meal.title}" into ${day} ${mealType}!`);
+        }}
+        onEditMeal={(meal) => {
+          setIsAllMealsOpen(false);
+          setEditingTarget({
+            day: 'Monday',
+            mealType: meal.mealType,
+            meal
+          });
+        }}
+      />
     </div>
   );
 }

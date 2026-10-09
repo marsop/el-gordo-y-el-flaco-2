@@ -11,6 +11,7 @@ interface WeekViewProps {
   onShuffleDay: (day: DayOfWeek) => void;
   onToggleBatch?: (day: DayOfWeek, type: 'lunch' | 'dinner') => void;
   onMakeLeftover?: (day: DayOfWeek, type: 'lunch' | 'dinner') => void;
+  onOpenAllMeals?: () => void;
 }
 
 export const WeekView: React.FC<WeekViewProps> = ({
@@ -20,7 +21,8 @@ export const WeekView: React.FC<WeekViewProps> = ({
   onEditMeal,
   onShuffleDay,
   onToggleBatch,
-  onMakeLeftover
+  onMakeLeftover,
+  onOpenAllMeals
 }) => {
   const [selectedDayFilter, setSelectedDayFilter] = useState<'ALL' | DayOfWeek>('ALL');
 
@@ -33,13 +35,22 @@ export const WeekView: React.FC<WeekViewProps> = ({
       {/* Sub-header & Filter Navigation */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-zinc-200 pb-4">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-950 font-['Oswald']">
               Weekly Meal Rotation
             </h2>
             <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 bg-red-600 text-white rounded font-mono">
               Mon — Sun
             </span>
+            {onOpenAllMeals && (
+              <button
+                onClick={onOpenAllMeals}
+                className="ml-2 px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 rounded font-['Oswald'] text-xs font-bold uppercase tracking-wider flex items-center gap-1 transition-colors cursor-pointer"
+              >
+                <ChefHat className="w-3.5 h-3.5 text-red-600" />
+                <span>See All Meals</span>
+              </button>
+            )}
           </div>
           <p className="text-xs sm:text-sm text-zinc-600 font-['Plus_Jakarta_Sans'] mt-0.5">
             Two daily meals for two diners. Batch cook dinners to yield effortless reheats for lunch!

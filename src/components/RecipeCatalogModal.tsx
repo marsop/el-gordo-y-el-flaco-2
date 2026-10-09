@@ -20,7 +20,7 @@ export const RecipeCatalogModal: React.FC<RecipeCatalogModalProps> = ({
   onSelectRecipe
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'lunch' | 'dinner'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'lunch' | 'dinner' | 'favorites'>('all');
 
   if (!isOpen) return null;
 
@@ -30,7 +30,13 @@ export const RecipeCatalogModal: React.FC<RecipeCatalogModalProps> = ({
       r.tags.some((t) => t.toLowerCase().includes(searchTerm.toLowerCase())) ||
       r.ingredients.some((i) => i.name.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesType = filterType === 'all' || r.mealType === filterType;
+    const matchesType = 
+      filterType === 'all' 
+        ? true 
+        : filterType === 'favorites' 
+        ? r.tags.includes('User Favorite') 
+        : r.mealType === filterType;
+
     return matchesSearch && matchesType;
   });
 
@@ -61,7 +67,7 @@ export const RecipeCatalogModal: React.FC<RecipeCatalogModalProps> = ({
             <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-2.5" />
             <input
               type="text"
-              placeholder="Search recipes, ingredients, tags..."
+              placeholder="Search favorites (e.g. Tortilla, Kässpätzle, Lasagne, Curry, Chili)..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-3 py-2 bg-white border border-zinc-300 rounded text-xs focus:ring-2 focus:ring-red-500 focus:outline-none"
@@ -71,15 +77,23 @@ export const RecipeCatalogModal: React.FC<RecipeCatalogModalProps> = ({
           <div className="flex items-center gap-1 bg-zinc-200/80 p-1 rounded">
             <button
               onClick={() => setFilterType('all')}
-              className={`px-3 py-1 text-xs font-bold font-['Oswald'] uppercase rounded transition-colors cursor-pointer ${
+              className={`px-2.5 py-1 text-xs font-bold font-['Oswald'] uppercase rounded transition-colors cursor-pointer ${
                 filterType === 'all' ? 'bg-white text-zinc-900 shadow-xs' : 'text-zinc-600 hover:text-zinc-900'
               }`}
             >
-              All
+              All ({recipes.length})
+            </button>
+            <button
+              onClick={() => setFilterType('favorites')}
+              className={`px-2.5 py-1 text-xs font-bold font-['Oswald'] uppercase rounded transition-colors cursor-pointer ${
+                filterType === 'favorites' ? 'bg-amber-400 text-zinc-950 font-black shadow-xs' : 'text-zinc-700 hover:text-zinc-900'
+              }`}
+            >
+              ★ Favorites
             </button>
             <button
               onClick={() => setFilterType('lunch')}
-              className={`px-3 py-1 text-xs font-bold font-['Oswald'] uppercase rounded transition-colors cursor-pointer ${
+              className={`px-2.5 py-1 text-xs font-bold font-['Oswald'] uppercase rounded transition-colors cursor-pointer ${
                 filterType === 'lunch' ? 'bg-white text-zinc-900 shadow-xs' : 'text-zinc-600 hover:text-zinc-900'
               }`}
             >
@@ -87,7 +101,7 @@ export const RecipeCatalogModal: React.FC<RecipeCatalogModalProps> = ({
             </button>
             <button
               onClick={() => setFilterType('dinner')}
-              className={`px-3 py-1 text-xs font-bold font-['Oswald'] uppercase rounded transition-colors cursor-pointer ${
+              className={`px-2.5 py-1 text-xs font-bold font-['Oswald'] uppercase rounded transition-colors cursor-pointer ${
                 filterType === 'dinner' ? 'bg-white text-zinc-900 shadow-xs' : 'text-zinc-600 hover:text-zinc-900'
               }`}
             >
